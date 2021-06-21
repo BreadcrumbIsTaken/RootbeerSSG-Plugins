@@ -31,22 +31,24 @@ def rb_render_tag_index(sender):
 
 @after_render_archive.connect
 def rb_render_tags(sender):
-    tags = {}
+    post_with_the_tag = {}
     for i in range(len(sender.posts)):
         for tag in sender.posts[i]['metadata']['tags']:
-            if tag in tags.keys():      #Checking if the tags are already in the dict
-                tags[tag].append([sender.posts[i]['slug'], sender.posts[i]['url']])
+            if tag in post_with_the_tag.keys():      #Checking if the tags are already in the dict
+                post_with_the_tag[tag].append(sender.posts[i])
             else:    #Adding the remaining to the dict
-                tags[tag] = [[sender.posts[i]['slug'], sender.posts[i]['url']]]
+                post_with_the_tag[tag] = [sender.posts[i]]
+                
     tag_page_template = sender.env.get_template('tag.html')
-    for tag in tags.keys():
+    for tag in post_with_the_tag.keys():
         rb_create_and_or_clean_path(f'{sender.out_dir}/tags/{slug(tag)}/')
         with open(f'{sender.out_dir}/tags/{slug(tag)}/index.html', 'w', encoding='utf-8') as file:
             file.write(
                 tag_page_template.render(
                     config=sender.config, 
                     content=sender.content, 
-                    tags=tags[tag],
+                    tags=post_with_the_tag[tag],
+                    tag=tag,
                     rootbeer=sender
                     )
                 )
